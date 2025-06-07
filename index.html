@@ -215,6 +215,26 @@
             color: #999;
         }
 
+        .instructions {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+        }
+
+        .instructions h3 {
+            color: #1565c0;
+            margin-bottom: 10px;
+        }
+
+        .instructions code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
@@ -234,10 +254,17 @@
     <div class="container">
         <h1>🖼️ Hospedagem de Imagens</h1>
         
+        <div class="instructions">
+            <h3>📝 Como adicionar suas imagens:</h3>
+            <p>1. Coloque suas imagens na pasta <code>imagens/</code> do repositório</p>
+            <p>2. Atualize a lista <code>existingImages</code> no código abaixo com os nomes das suas imagens</p>
+            <p>3. Faça commit e push para o GitHub</p>
+        </div>
+        
         <div class="upload-section">
             <input type="file" id="fileInput" multiple accept="image/*">
-            <h3>Adicione suas imagens</h3>
-            <p>Clique no botão abaixo ou arraste as imagens aqui</p>
+            <h3>Visualizar Imagens Locais</h3>
+            <p>Selecione imagens para pré-visualizar (apenas demonstração)</p>
             <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
                 📁 Selecionar Imagens
             </button>
@@ -246,7 +273,7 @@
         <div class="gallery" id="gallery">
             <div class="empty-state">
                 <h3>Nenhuma imagem encontrada</h3>
-                <p>Adicione algumas imagens para começar</p>
+                <p>Adicione os nomes das suas imagens na lista <code>existingImages</code> no código</p>
             </div>
         </div>
     </div>
@@ -269,28 +296,43 @@
         const modalImg = document.getElementById('modalImg');
         const toast = document.getElementById('toast');
         
-        // Simular imagens existentes na pasta /imagens
+        // ATUALIZE ESTA LISTA COM OS NOMES REAIS DAS SUAS IMAGENS
         const existingImages = [
             '14.png',
-            'exemplo2.png',
-            'exemplo3.gif'
+            // Adicione aqui os nomes das suas outras imagens, por exemplo:
+            // '15.png',
+            // 'minha-foto.jpg',
+            // 'logo.gif'
         ];
 
         function loadExistingImages() {
+            if (existingImages.length === 0) {
+                return; // Mantém o estado vazio se não há imagens
+            }
+            
             existingImages.forEach(imageName => {
                 const imageUrl = `./imagens/${imageName}`;
-                addImageToGallery(imageName, imageUrl);
+                addImageToGallery(imageName, imageUrl, true);
             });
         }
 
-        function addImageToGallery(name, url) {
+        function addImageToGallery(name, url, isFromServer = false) {
             const imageCard = document.createElement('div');
             imageCard.className = 'image-card';
             
-            const fullUrl = window.location.origin + '/' + url.replace('./', '');
+            let fullUrl;
+            if (isFromServer) {
+                // Para GitHub Pages - constrói URL completa
+                const repoName = window.location.pathname.split('/')[1];
+                const baseUrl = window.location.origin + (repoName ? `/${repoName}` : '');
+                fullUrl = `${baseUrl}/imagens/${name}`;
+            } else {
+                // Para imagens locais (preview)
+                fullUrl = url;
+            }
             
             imageCard.innerHTML = `
-                <img src="${url}" alt="${name}" class="image-preview" onclick="openModal('${url}')">
+                <img src="${url}" alt="${name}" class="image-preview" onclick="openModal('${url}')" onerror="this.style.display='none'; this.parentElement.style.display='none';">
                 <div class="image-info">
                     <div class="image-name">${name}</div>
                     <div class="link-container">
@@ -319,6 +361,15 @@
                     button.innerHTML = originalText;
                     button.classList.remove('copied');
                 }, 2000);
+            }).catch(() => {
+                // Fallback para navegadores mais antigos
+                const tempInput = document.createElement('input');
+                tempInput.value = url;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+                showToast();
             });
         }
 
@@ -341,7 +392,7 @@
             files.forEach(file => {
                 if (file.type.startsWith('image/')) {
                     const url = URL.createObjectURL(file);
-                    addImageToGallery(file.name, url);
+                    addImageToGallery(file.name, url, false);
                 }
             });
         });
@@ -381,13 +432,17 @@
             files.forEach(file => {
                 if (file.type.startsWith('image/')) {
                     const url = URL.createObjectURL(file);
-                    addImageToGallery(file.name, url);
+                    addImageToGallery(file.name, url, false);
                 }
             });
         });
 
         // Carregar imagens existentes ao iniciar
         loadExistingImages();
+
+        // Debug info
+        console.log('Site URL:', window.location.href);
+        console.log('Imagens configuradas:', existingImages);
     </script>
 </body>
 </html>
