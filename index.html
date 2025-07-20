@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hospedagem de Imagens</title>
+    <title>Hospedagem de Imagens Universal</title>
     <style>
         * {
             margin: 0;
@@ -39,113 +39,255 @@
             background-clip: text;
         }
 
-        .upload-section {
+        .stats {
+            display: flex;
+            justify-content: space-around;
             background: #f8f9fa;
-            border: 2px dashed #667eea;
+            padding: 20px;
             border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .stat {
+            flex: 1;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .upload-section {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 20px;
             padding: 40px;
             text-align: center;
             margin-bottom: 40px;
+            color: white;
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
 
-        .upload-section:hover {
-            border-color: #764ba2;
-            background: #f0f4ff;
+        .upload-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0%, 0%) rotate(0deg); }
+            50% { transform: translate(10%, 10%) rotate(180deg); }
+        }
+
+        .upload-section.dragover {
+            transform: scale(1.02);
+            box-shadow: 0 20px 50px rgba(102, 126, 234, 0.4);
         }
 
         .upload-section input[type="file"] {
             display: none;
         }
 
+        .upload-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            display: block;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
         .upload-btn {
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            background: rgba(255, 255, 255, 0.2);
             color: white;
             padding: 15px 30px;
-            border: none;
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 50px;
             font-size: 1.1rem;
             cursor: pointer;
-            transition: transform 0.3s ease;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            margin: 10px;
         }
 
         .upload-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
         }
 
         .gallery {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
             margin-top: 30px;
         }
 
         .image-card {
             background: white;
-            border-radius: 15px;
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
         }
 
         .image-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .image-container {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            overflow: hidden;
+            background: #f8f9fa;
         }
 
         .image-preview {
             width: 100%;
-            height: 200px;
+            height: 100%;
             object-fit: cover;
             cursor: pointer;
-            display: block;
+            transition: transform 0.3s ease;
+        }
+
+        .image-card:hover .image-preview {
+            transform: scale(1.05);
+        }
+
+        .image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .image-card:hover .image-overlay {
+            opacity: 1;
+        }
+
+        .overlay-btn {
+            background: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            margin: 5px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .overlay-btn:hover {
+            transform: scale(1.1);
         }
 
         .image-info {
-            padding: 15px;
+            padding: 20px;
         }
 
         .image-name {
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             color: #333;
-            word-break: break-all;
+            word-break: break-word;
+            font-size: 1.1rem;
+        }
+
+        .image-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #666;
         }
 
         .link-container {
             display: flex;
             gap: 10px;
             align-items: center;
+            margin-bottom: 10px;
         }
 
         .image-link {
             flex: 1;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
             font-size: 0.9rem;
             background: #f8f9fa;
             word-break: break-all;
+            transition: border-color 0.3s ease;
+        }
+
+        .image-link:focus {
+            outline: none;
+            border-color: #667eea;
         }
 
         .copy-btn {
-            background: #667eea;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 60px;
+        }
+
+        .copy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .copy-btn.copied {
+            background: linear-gradient(45deg, #28a745, #20c997);
+        }
+
+        .delete-btn {
+            background: linear-gradient(45deg, #dc3545, #fd7e83);
             color: white;
             border: none;
             padding: 8px 15px;
             border-radius: 8px;
             cursor: pointer;
-            transition: background 0.3s ease;
-            min-width: 50px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
         }
 
-        .copy-btn:hover {
-            background: #764ba2;
-        }
-
-        .copy-btn.copied {
-            background: #28a745;
+        .delete-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
         }
 
         .modal {
@@ -156,8 +298,8 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            backdrop-filter: blur(5px);
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
         }
 
         .modal-content {
@@ -165,28 +307,38 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            max-width: 90%;
-            max-height: 90%;
+            max-width: 95%;
+            max-height: 95%;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
         }
 
         .modal img {
             width: 100%;
-            height: 100%;
+            height: auto;
+            max-height: 85vh;
             object-fit: contain;
-            border-radius: 10px;
-            max-width: 90vw;
-            max-height: 90vh;
+            display: block;
+        }
+
+        .modal-info {
+            padding: 20px;
+            background: white;
         }
 
         .close {
             position: absolute;
-            top: 20px;
+            top: 25px;
             right: 35px;
             color: white;
-            font-size: 40px;
+            font-size: 45px;
             font-weight: bold;
             cursor: pointer;
             z-index: 1001;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            transition: opacity 0.3s ease;
         }
 
         .close:hover {
@@ -197,13 +349,14 @@
             position: fixed;
             bottom: 30px;
             right: 30px;
-            background: #28a745;
+            background: linear-gradient(45deg, #28a745, #20c997);
             color: white;
             padding: 15px 25px;
-            border-radius: 10px;
+            border-radius: 15px;
             transform: translateX(400px);
             transition: transform 0.3s ease;
             z-index: 1000;
+            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
         }
 
         .toast.show {
@@ -212,46 +365,26 @@
 
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
+            padding: 80px 20px;
             color: #666;
         }
 
+        .empty-state .icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
         .empty-state h3 {
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             color: #999;
-        }
-
-        .instructions {
-            background: #e3f2fd;
-            border-left: 4px solid #2196f3;
-            padding: 20px;
-            margin-bottom: 30px;
-            border-radius: 10px;
-        }
-
-        .instructions h3 {
-            color: #1565c0;
-            margin-bottom: 10px;
-        }
-
-        .instructions code {
-            background: #f5f5f5;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-        }
-
-        .error-message {
-            color: #dc3545;
-            font-size: 0.8rem;
-            margin-top: 5px;
-            display: none;
+            font-size: 1.5rem;
         }
 
         .loading {
             display: inline-block;
-            width: 20px;
-            height: 20px;
+            width: 25px;
+            height: 25px;
             border: 3px solid #f3f3f3;
             border-top: 3px solid #667eea;
             border-radius: 50%;
@@ -263,9 +396,27 @@
             100% { transform: rotate(360deg); }
         }
 
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: white;
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 3px;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
+                margin: 10px;
             }
             
             h1 {
@@ -276,6 +427,11 @@
                 grid-template-columns: 1fr;
             }
 
+            .stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+
             .link-container {
                 flex-direction: column;
             }
@@ -283,34 +439,60 @@
             .image-link {
                 margin-bottom: 10px;
             }
+
+            .upload-section {
+                padding: 30px 20px;
+            }
+
+            .upload-icon {
+                font-size: 3rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🖼️ Hospedagem de Imagens</h1>
+        <h1>🖼️ Hospedagem Universal de Imagens</h1>
         
-        <div class="instructions">
-            <h3>📝 Como adicionar suas imagens:</h3>
-            <p>1. Coloque suas imagens na pasta <code>imagens/</code> do repositório</p>
-            <p>2. Atualize a lista <code>existingImages</code> no código abaixo com os nomes das suas imagens</p>
-            <p>3. Faça commit e push para o GitHub</p>
-            <p>4. Suporta todos os formatos: JPG, PNG, GIF, WebP, SVG, BMP, TIFF, AVIF</p>
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-number" id="totalImages">0</div>
+                <div class="stat-label">Imagens Hospedadas</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="totalSize">0 MB</div>
+                <div class="stat-label">Espaço Utilizado</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">∞</div>
+                <div class="stat-label">Formatos Suportados</div>
+            </div>
         </div>
         
-        <div class="upload-section">
+        <div class="upload-section" id="uploadSection">
             <input type="file" id="fileInput" multiple accept="image/*">
-            <h3>Visualizar Imagens Locais</h3>
-            <p>Selecione imagens para pré-visualizar (suporta todos os formatos e tamanhos)</p>
-            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
-                📁 Selecionar Imagens
-            </button>
+            <div class="upload-content">
+                <span class="upload-icon">📸</span>
+                <h3>Hospede suas imagens</h3>
+                <p>Arraste e solte suas imagens aqui ou clique para selecionar</p>
+                <p><small>Suporta qualquer formato e tamanho • JPG • PNG • GIF • WebP • SVG • AVIF • HEIC • e muito mais!</small></p>
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    📁 Selecionar Imagens
+                </button>
+                <button class="upload-btn" onclick="pasteFromClipboard()">
+                    📋 Colar da Área de Transferência
+                </button>
+                <div class="progress-bar" id="progressBar" style="display: none;">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
         </div>
 
         <div class="gallery" id="gallery">
             <div class="empty-state">
-                <h3>Nenhuma imagem encontrada</h3>
-                <p>Adicione os nomes das suas imagens na lista <code>existingImages</code> no código</p>
+                <div class="icon">🖼️</div>
+                <h3>Nenhuma imagem hospedada ainda</h3>
+                <p>Faça upload de suas primeiras imagens para começar!</p>
             </div>
         </div>
     </div>
@@ -319,6 +501,7 @@
         <span class="close">&times;</span>
         <div class="modal-content">
             <img id="modalImg" src="" alt="">
+            <div class="modal-info" id="modalInfo"></div>
         </div>
     </div>
 
@@ -327,140 +510,185 @@
     </div>
 
     <script>
-        let images = [];
+        let hostedImages = [];
+        let totalSize = 0;
         const gallery = document.getElementById('gallery');
         const modal = document.getElementById('modal');
         const modalImg = document.getElementById('modalImg');
+        const modalInfo = document.getElementById('modalInfo');
         const toast = document.getElementById('toast');
-        
-        // ATUALIZE ESTA LISTA COM OS NOMES REAIS DAS SUAS IMAGENS
-        // Suporta todos os formatos: jpg, jpeg, png, gif, webp, svg, bmp, tiff, avif, etc.
-        const existingImages = [
-            '1s.jpg',
-            '2.jpg',
-            '3.jpg',
-            '4.jpg',
-            '5.jpg',
-            '6.jpg',
-            '7.jpg',
-            '8.jpg',
-            // Adicione aqui os nomes das suas outras imagens em qualquer formato:
-            // 'exemplo.png',
-            // 'foto.webp',
-            // 'imagem.gif',
-            // 'logo.svg',
-            // 'banner.avif',
-        ];
+        const uploadSection = document.getElementById('uploadSection');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
 
-        // Função para detectar se está rodando no GitHub Pages
-        function getBaseUrl() {
-            const hostname = window.location.hostname;
-            const pathname = window.location.pathname;
-            
-            if (hostname.includes('github.io')) {
-                // GitHub Pages
-                const pathParts = pathname.split('/').filter(part => part);
-                if (pathParts.length > 0) {
-                    return `${window.location.origin}/${pathParts[0]}`;
-                }
-            }
-            
-            // Local ou outros servidores
-            return window.location.origin;
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        function loadExistingImages() {
-            if (existingImages.length === 0) {
-                return; // Mantém o estado vazio se não há imagens
-            }
+        function updateStats() {
+            document.getElementById('totalImages').textContent = hostedImages.length;
+            document.getElementById('totalSize').textContent = formatFileSize(totalSize);
+        }
+
+        function generateImageId() {
+            return 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function addImageToGallery(file, url, id) {
+            const imageCard = document.createElement('div');
+            imageCard.className = 'image-card';
+            imageCard.setAttribute('data-id', id);
             
-            // Limpa a mensagem de estado vazio
+            const createdDate = new Date().toLocaleString('pt-BR');
+            const fileSize = formatFileSize(file.size);
+            const fileName = file.name;
+            
+            imageCard.innerHTML = `
+                <div class="image-container">
+                    <img src="${url}" alt="${fileName}" class="image-preview" onclick="openModal('${url}', '${fileName}', '${fileSize}', '${createdDate}', '${id}')">
+                    <div class="image-overlay">
+                        <button class="overlay-btn" onclick="openModal('${url}', '${fileName}', '${fileSize}', '${createdDate}', '${id}')">👁️ Ver</button>
+                        <button class="overlay-btn" onclick="downloadImage('${url}', '${fileName}')">⬇️ Baixar</button>
+                    </div>
+                </div>
+                <div class="image-info">
+                    <div class="image-name">${fileName}</div>
+                    <div class="image-details">
+                        <span>📏 ${fileSize}</span>
+                        <span>📅 ${createdDate.split(' ')[0]}</span>
+                    </div>
+                    <div class="link-container">
+                        <input type="text" class="image-link" value="${url}" readonly>
+                        <button class="copy-btn" onclick="copyLink('${url}', this)">📋</button>
+                    </div>
+                    <button class="delete-btn" onclick="deleteImage('${id}')">🗑️ Excluir</button>
+                </div>
+            `;
+            
             if (gallery.querySelector('.empty-state')) {
                 gallery.innerHTML = '';
             }
             
-            existingImages.forEach(imageName => {
-                addImageToGallery(imageName, true);
+            gallery.appendChild(imageCard);
+            
+            // Adicionar aos dados
+            hostedImages.push({
+                id: id,
+                file: file,
+                url: url,
+                name: fileName,
+                size: file.size,
+                created: createdDate
+            });
+            
+            totalSize += file.size;
+            updateStats();
+        }
+
+        function deleteImage(id) {
+            if (confirm('Tem certeza que deseja excluir esta imagem?')) {
+                const imageCard = document.querySelector(`[data-id="${id}"]`);
+                const imageData = hostedImages.find(img => img.id === id);
+                
+                if (imageCard && imageData) {
+                    // Revogar URL do blob
+                    URL.revokeObjectURL(imageData.url);
+                    
+                    // Remover do array
+                    hostedImages = hostedImages.filter(img => img.id !== id);
+                    totalSize -= imageData.size;
+                    
+                    // Remover do DOM
+                    imageCard.remove();
+                    
+                    // Verificar se não há mais imagens
+                    if (hostedImages.length === 0) {
+                        gallery.innerHTML = `
+                            <div class="empty-state">
+                                <div class="icon">🖼️</div>
+                                <h3>Nenhuma imagem hospedada ainda</h3>
+                                <p>Faça upload de suas primeiras imagens para começar!</p>
+                            </div>
+                        `;
+                    }
+                    
+                    updateStats();
+                    showToast('Imagem excluída com sucesso!');
+                }
+            }
+        }
+
+        function processFiles(files) {
+            if (files.length === 0) return;
+            
+            progressBar.style.display = 'block';
+            let processed = 0;
+            const total = files.length;
+            
+            Array.from(files).forEach((file, index) => {
+                // Verificar se é realmente uma imagem
+                if (file.type.startsWith('image/')) {
+                    const url = URL.createObjectURL(file);
+                    const id = generateImageId();
+                    
+                    // Simular processamento com delay
+                    setTimeout(() => {
+                        addImageToGallery(file, url, id);
+                        processed++;
+                        
+                        const progress = (processed / total) * 100;
+                        progressFill.style.width = progress + '%';
+                        
+                        if (processed === total) {
+                            setTimeout(() => {
+                                progressBar.style.display = 'none';
+                                progressFill.style.width = '0%';
+                                showToast(`${total} imagem(ns) hospedada(s) com sucesso!`);
+                            }, 500);
+                        }
+                    }, index * 100);
+                } else {
+                    processed++;
+                    const progress = (processed / total) * 100;
+                    progressFill.style.width = progress + '%';
+                    
+                    if (processed === total) {
+                        setTimeout(() => {
+                            progressBar.style.display = 'none';
+                            progressFill.style.width = '0%';
+                        }, 500);
+                    }
+                }
             });
         }
 
-        function addImageToGallery(name, isFromServer = false) {
-            const imageCard = document.createElement('div');
-            imageCard.className = 'image-card';
-            
-            let imageUrl, fullUrl;
-            
-            if (isFromServer) {
-                // Para imagens do servidor
-                const baseUrl = getBaseUrl();
-                imageUrl = `${baseUrl}/imagens/${name}`;
-                fullUrl = imageUrl;
-            } else {
-                // Para imagens locais (preview) - o name já é a URL do blob
-                imageUrl = name;
-                fullUrl = imageUrl;
-            }
-            
-            // Cria um elemento de loading
-            const loadingDiv = document.createElement('div');
-            loadingDiv.innerHTML = `
-                <div style="height: 200px; display: flex; align-items: center; justify-content: center; background: #f8f9fa;">
-                    <div class="loading"></div>
-                </div>
-                <div class="image-info">
-                    <div class="image-name">${isFromServer ? name : 'Carregando...'}</div>
-                    <div class="link-container">
-                        <input type="text" class="image-link" value="Gerando link..." readonly>
-                        <button class="copy-btn" disabled>📋</button>
-                    </div>
-                </div>
-            `;
-            
-            imageCard.innerHTML = loadingDiv.innerHTML;
-            gallery.appendChild(imageCard);
-            
-            // Carrega a imagem
-            const img = new Image();
-            img.onload = function() {
-                // Imagem carregou com sucesso
-                const actualName = isFromServer ? name : 'Imagem Local';
-                imageCard.innerHTML = `
-                    <img src="${imageUrl}" alt="${actualName}" class="image-preview" onclick="openModal('${imageUrl}')" loading="lazy">
-                    <div class="image-info">
-                        <div class="image-name">${actualName}</div>
-                        <div class="link-container">
-                            <input type="text" class="image-link" value="${fullUrl}" readonly>
-                            <button class="copy-btn" onclick="copyLink('${fullUrl}', this)">📋</button>
-                        </div>
-                    </div>
-                `;
-            };
-            
-            img.onerror = function() {
-                // Erro ao carregar imagem
-                if (isFromServer) {
-                    imageCard.innerHTML = `
-                        <div style="height: 200px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; color: #999;">
-                            ❌ Imagem não encontrada
-                        </div>
-                        <div class="image-info">
-                            <div class="image-name" style="color: #dc3545;">${name}</div>
-                            <div class="error-message" style="display: block;">
-                                Verifique se a imagem existe na pasta 'imagens/'
-                            </div>
-                            <div class="link-container">
-                                <input type="text" class="image-link" value="${fullUrl}" readonly style="border-color: #dc3545;">
-                                <button class="copy-btn" onclick="copyLink('${fullUrl}', this)" style="background: #dc3545;">📋</button>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    // Remove o card se for imagem local com erro
-                    imageCard.remove();
+        async function pasteFromClipboard() {
+            try {
+                const clipboardItems = await navigator.clipboard.read();
+                const imageFiles = [];
+                
+                for (const clipboardItem of clipboardItems) {
+                    for (const type of clipboardItem.types) {
+                        if (type.startsWith('image/')) {
+                            const blob = await clipboardItem.getType(type);
+                            const file = new File([blob], `clipboard-${Date.now()}.${type.split('/')[1]}`, { type });
+                            imageFiles.push(file);
+                        }
+                    }
                 }
-            };
-            
-            img.src = imageUrl;
+                
+                if (imageFiles.length > 0) {
+                    processFiles(imageFiles);
+                } else {
+                    showToast('Nenhuma imagem encontrada na área de transferência!');
+                }
+            } catch (err) {
+                showToast('Erro ao acessar área de transferência. Use Ctrl+V ou selecione arquivos.');
+            }
         }
 
         function copyLink(url, button) {
@@ -469,47 +697,59 @@
                 button.innerHTML = '✓';
                 button.classList.add('copied');
                 
-                showToast();
+                showToast('Link copiado!');
                 
                 setTimeout(() => {
                     button.innerHTML = originalText;
                     button.classList.remove('copied');
                 }, 2000);
             }).catch(() => {
-                // Fallback para navegadores mais antigos
+                // Fallback
                 const tempInput = document.createElement('input');
                 tempInput.value = url;
                 document.body.appendChild(tempInput);
                 tempInput.select();
                 document.execCommand('copy');
                 document.body.removeChild(tempInput);
-                showToast();
+                showToast('Link copiado!');
             });
         }
 
-        function showToast() {
+        function downloadImage(url, filename) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function showToast(message) {
+            toast.textContent = message;
             toast.classList.add('show');
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 3000);
         }
 
-        function openModal(src) {
+        function openModal(src, name, size, created, id) {
             modal.style.display = 'block';
             modalImg.src = src;
+            modalInfo.innerHTML = `
+                <h3>${name}</h3>
+                <p><strong>Tamanho:</strong> ${size}</p>
+                <p><strong>Data:</strong> ${created}</p>
+                <p><strong>ID:</strong> ${id}</p>
+                <div style="margin-top: 15px;">
+                    <button class="copy-btn" onclick="copyLink('${src}', this)" style="margin-right: 10px;">📋 Copiar Link</button>
+                    <button class="copy-btn" onclick="downloadImage('${src}', '${name}')" style="background: linear-gradient(45deg, #28a745, #20c997);">⬇️ Baixar</button>
+                </div>
+            `;
         }
 
         // Event listeners
         document.getElementById('fileInput').addEventListener('change', function(e) {
-            const files = Array.from(e.target.files);
-            
-            files.forEach(file => {
-                // Verifica se é realmente uma imagem
-                if (file.type.startsWith('image/')) {
-                    const url = URL.createObjectURL(file);
-                    addImageToGallery(url, false);
-                }
-            });
+            processFiles(e.target.files);
         });
 
         // Modal close
@@ -523,59 +763,52 @@
             }
         }
 
-        // Keyboard support para modal
+        // Keyboard support
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && modal.style.display === 'block') {
                 modal.style.display = 'none';
             }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+                e.preventDefault();
+                pasteFromClipboard();
+            }
         });
 
         // Drag and drop
-        const uploadSection = document.querySelector('.upload-section');
-        
         uploadSection.addEventListener('dragover', function(e) {
             e.preventDefault();
-            this.style.borderColor = '#764ba2';
-            this.style.background = '#f0f4ff';
+            this.classList.add('dragover');
         });
 
         uploadSection.addEventListener('dragleave', function(e) {
             e.preventDefault();
-            this.style.borderColor = '#667eea';
-            this.style.background = '#f8f9fa';
+            this.classList.remove('dragover');
         });
 
         uploadSection.addEventListener('drop', function(e) {
             e.preventDefault();
-            this.style.borderColor = '#667eea';
-            this.style.background = '#f8f9fa';
-            
-            const files = Array.from(e.dataTransfer.files);
-            files.forEach(file => {
-                if (file.type.startsWith('image/')) {
-                    const url = URL.createObjectURL(file);
-                    addImageToGallery(url, false);
-                }
-            });
+            this.classList.remove('dragover');
+            processFiles(e.dataTransfer.files);
         });
 
-        // Carregar imagens existentes ao iniciar
-        loadExistingImages();
+        // Drag and drop para toda a página
+        document.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
 
-        // Debug info
-        console.log('Site URL:', window.location.href);
-        console.log('Base URL:', getBaseUrl());
-        console.log('Imagens configuradas:', existingImages);
+        document.addEventListener('drop', function(e) {
+            e.preventDefault();
+            processFiles(e.dataTransfer.files);
+        });
+
+        // Inicializar
+        updateStats();
         
-        // Detecta se há imagens que não carregaram depois de um tempo
-        setTimeout(() => {
-            const allCards = gallery.querySelectorAll('.image-card');
-            const emptyGallery = allCards.length === 0;
-            
-            if (emptyGallery && existingImages.length > 0) {
-                console.warn('Nenhuma imagem foi carregada. Verifique se as imagens estão na pasta "imagens/" e se os nomes estão corretos na lista existingImages.');
-            }
-        }, 3000);
+        console.log('🖼️ Hospedagem Universal de Imagens');
+        console.log('✅ Suporte a todos os formatos de imagem');
+        console.log('✅ Qualquer tamanho de arquivo');
+        console.log('✅ Drag & Drop ativado');
+        console.log('✅ Ctrl+V para colar da área de transferência');
     </script>
 </body>
 </html>
