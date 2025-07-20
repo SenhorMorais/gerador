@@ -99,6 +99,7 @@
             height: 200px;
             object-fit: cover;
             cursor: pointer;
+            display: block;
         }
 
         .image-info {
@@ -109,6 +110,7 @@
             font-weight: bold;
             margin-bottom: 10px;
             color: #333;
+            word-break: break-all;
         }
 
         .link-container {
@@ -124,6 +126,7 @@
             border-radius: 8px;
             font-size: 0.9rem;
             background: #f8f9fa;
+            word-break: break-all;
         }
 
         .copy-btn {
@@ -134,6 +137,7 @@
             border-radius: 8px;
             cursor: pointer;
             transition: background 0.3s ease;
+            min-width: 50px;
         }
 
         .copy-btn:hover {
@@ -170,6 +174,8 @@
             height: 100%;
             object-fit: contain;
             border-radius: 10px;
+            max-width: 90vw;
+            max-height: 90vh;
         }
 
         .close {
@@ -235,6 +241,28 @@
             font-family: 'Courier New', monospace;
         }
 
+        .error-message {
+            color: #dc3545;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
@@ -246,6 +274,14 @@
             
             .gallery {
                 grid-template-columns: 1fr;
+            }
+
+            .link-container {
+                flex-direction: column;
+            }
+
+            .image-link {
+                margin-bottom: 10px;
             }
         }
     </style>
@@ -259,12 +295,13 @@
             <p>1. Coloque suas imagens na pasta <code>imagens/</code> do repositório</p>
             <p>2. Atualize a lista <code>existingImages</code> no código abaixo com os nomes das suas imagens</p>
             <p>3. Faça commit e push para o GitHub</p>
+            <p>4. Suporta todos os formatos: JPG, PNG, GIF, WebP, SVG, BMP, TIFF, AVIF</p>
         </div>
         
         <div class="upload-section">
             <input type="file" id="fileInput" multiple accept="image/*">
             <h3>Visualizar Imagens Locais</h3>
-            <p>Selecione imagens para pré-visualizar (apenas demonstração)</p>
+            <p>Selecione imagens para pré-visualizar (suporta todos os formatos e tamanhos)</p>
             <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
                 📁 Selecionar Imagens
             </button>
@@ -297,6 +334,7 @@
         const toast = document.getElementById('toast');
         
         // ATUALIZE ESTA LISTA COM OS NOMES REAIS DAS SUAS IMAGENS
+        // Suporta todos os formatos: jpg, jpeg, png, gif, webp, svg, bmp, tiff, avif, etc.
         const existingImages = [
             '1s.jpg',
             '2.jpg',
@@ -306,51 +344,123 @@
             '6.jpg',
             '7.jpg',
             '8.jpg',
-             // Adicione aqui os nomes das suas outras imagens, por exemplo:
+            // Adicione aqui os nomes das suas outras imagens em qualquer formato:
+            // 'exemplo.png',
+            // 'foto.webp',
+            // 'imagem.gif',
+            // 'logo.svg',
+            // 'banner.avif',
         ];
+
+        // Função para detectar se está rodando no GitHub Pages
+        function getBaseUrl() {
+            const hostname = window.location.hostname;
+            const pathname = window.location.pathname;
+            
+            if (hostname.includes('github.io')) {
+                // GitHub Pages
+                const pathParts = pathname.split('/').filter(part => part);
+                if (pathParts.length > 0) {
+                    return `${window.location.origin}/${pathParts[0]}`;
+                }
+            }
+            
+            // Local ou outros servidores
+            return window.location.origin;
+        }
 
         function loadExistingImages() {
             if (existingImages.length === 0) {
                 return; // Mantém o estado vazio se não há imagens
             }
             
-            existingImages.forEach(imageName => {
-                const imageUrl = `./imagens/${imageName}`;
-                addImageToGallery(imageName, imageUrl, true);
-            });
-        }
-
-        function addImageToGallery(name, url, isFromServer = false) {
-            const imageCard = document.createElement('div');
-            imageCard.className = 'image-card';
-            
-            let fullUrl;
-            if (isFromServer) {
-                // Para GitHub Pages - constrói URL completa
-                const repoName = window.location.pathname.split('/')[1];
-                const baseUrl = window.location.origin + (repoName ? `/${repoName}` : '');
-                fullUrl = `${baseUrl}/imagens/${name}`;
-            } else {
-                // Para imagens locais (preview)
-                fullUrl = url;
-            }
-            
-            imageCard.innerHTML = `
-                <img src="${url}" alt="${name}" class="image-preview" onclick="openModal('${url}')" onerror="this.style.display='none'; this.parentElement.style.display='none';">
-                <div class="image-info">
-                    <div class="image-name">${name}</div>
-                    <div class="link-container">
-                        <input type="text" class="image-link" value="${fullUrl}" readonly>
-                        <button class="copy-btn" onclick="copyLink('${fullUrl}', this)">📋</button>
-                    </div>
-                </div>
-            `;
-            
+            // Limpa a mensagem de estado vazio
             if (gallery.querySelector('.empty-state')) {
                 gallery.innerHTML = '';
             }
             
+            existingImages.forEach(imageName => {
+                addImageToGallery(imageName, true);
+            });
+        }
+
+        function addImageToGallery(name, isFromServer = false) {
+            const imageCard = document.createElement('div');
+            imageCard.className = 'image-card';
+            
+            let imageUrl, fullUrl;
+            
+            if (isFromServer) {
+                // Para imagens do servidor
+                const baseUrl = getBaseUrl();
+                imageUrl = `${baseUrl}/imagens/${name}`;
+                fullUrl = imageUrl;
+            } else {
+                // Para imagens locais (preview) - o name já é a URL do blob
+                imageUrl = name;
+                fullUrl = imageUrl;
+            }
+            
+            // Cria um elemento de loading
+            const loadingDiv = document.createElement('div');
+            loadingDiv.innerHTML = `
+                <div style="height: 200px; display: flex; align-items: center; justify-content: center; background: #f8f9fa;">
+                    <div class="loading"></div>
+                </div>
+                <div class="image-info">
+                    <div class="image-name">${isFromServer ? name : 'Carregando...'}</div>
+                    <div class="link-container">
+                        <input type="text" class="image-link" value="Gerando link..." readonly>
+                        <button class="copy-btn" disabled>📋</button>
+                    </div>
+                </div>
+            `;
+            
+            imageCard.innerHTML = loadingDiv.innerHTML;
             gallery.appendChild(imageCard);
+            
+            // Carrega a imagem
+            const img = new Image();
+            img.onload = function() {
+                // Imagem carregou com sucesso
+                const actualName = isFromServer ? name : 'Imagem Local';
+                imageCard.innerHTML = `
+                    <img src="${imageUrl}" alt="${actualName}" class="image-preview" onclick="openModal('${imageUrl}')" loading="lazy">
+                    <div class="image-info">
+                        <div class="image-name">${actualName}</div>
+                        <div class="link-container">
+                            <input type="text" class="image-link" value="${fullUrl}" readonly>
+                            <button class="copy-btn" onclick="copyLink('${fullUrl}', this)">📋</button>
+                        </div>
+                    </div>
+                `;
+            };
+            
+            img.onerror = function() {
+                // Erro ao carregar imagem
+                if (isFromServer) {
+                    imageCard.innerHTML = `
+                        <div style="height: 200px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; color: #999;">
+                            ❌ Imagem não encontrada
+                        </div>
+                        <div class="image-info">
+                            <div class="image-name" style="color: #dc3545;">${name}</div>
+                            <div class="error-message" style="display: block;">
+                                Verifique se a imagem existe na pasta 'imagens/'
+                            </div>
+                            <div class="link-container">
+                                <input type="text" class="image-link" value="${fullUrl}" readonly style="border-color: #dc3545;">
+                                <button class="copy-btn" onclick="copyLink('${fullUrl}', this)" style="background: #dc3545;">📋</button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Remove o card se for imagem local com erro
+                    imageCard.remove();
+                }
+            };
+            
+            img.src = imageUrl;
         }
 
         function copyLink(url, button) {
@@ -394,9 +504,10 @@
             const files = Array.from(e.target.files);
             
             files.forEach(file => {
+                // Verifica se é realmente uma imagem
                 if (file.type.startsWith('image/')) {
                     const url = URL.createObjectURL(file);
-                    addImageToGallery(file.name, url, false);
+                    addImageToGallery(url, false);
                 }
             });
         });
@@ -411,6 +522,13 @@
                 modal.style.display = 'none';
             }
         }
+
+        // Keyboard support para modal
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modal.style.display === 'block') {
+                modal.style.display = 'none';
+            }
+        });
 
         // Drag and drop
         const uploadSection = document.querySelector('.upload-section');
@@ -436,7 +554,7 @@
             files.forEach(file => {
                 if (file.type.startsWith('image/')) {
                     const url = URL.createObjectURL(file);
-                    addImageToGallery(file.name, url, false);
+                    addImageToGallery(url, false);
                 }
             });
         });
@@ -446,7 +564,18 @@
 
         // Debug info
         console.log('Site URL:', window.location.href);
+        console.log('Base URL:', getBaseUrl());
         console.log('Imagens configuradas:', existingImages);
+        
+        // Detecta se há imagens que não carregaram depois de um tempo
+        setTimeout(() => {
+            const allCards = gallery.querySelectorAll('.image-card');
+            const emptyGallery = allCards.length === 0;
+            
+            if (emptyGallery && existingImages.length > 0) {
+                console.warn('Nenhuma imagem foi carregada. Verifique se as imagens estão na pasta "imagens/" e se os nomes estão corretos na lista existingImages.');
+            }
+        }, 3000);
     </script>
 </body>
 </html>
