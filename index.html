@@ -417,18 +417,13 @@
         const toast = document.getElementById('toast');
         
         // ATUALIZE ESTA LISTA COM OS NOMES REAIS DAS SUAS IMAGENS
-        const existingImages = [ 
-            'marianapratas1.jpg',
-            '1s.jpg',
-            '2.jpg',
-            '3.jpg',
-            '4.jpg',
-            '5.jpg',
-            '6.jpg',
-            '7.jpg',
-            '8.jpg',
-            // Adicione aqui os nomes das suas outras imagens
-            // Suporta: .jpg, .jpeg, .png, .gif, .webp, .svg
+        const existingImages = [
+            // Deixe vazio temporariamente para testar
+            // '1s.jpg',
+            // '2.jpg',
+            // '3.jpg',
+            // Adicione aqui os nomes exatos das suas imagens
+            // Exemplo: 'minha-foto.jpg', 'imagem.png'
         ];
 
         function getFullImageUrl(imageName) {
@@ -438,11 +433,36 @@
             
             if (isGitHubPages) {
                 // Para GitHub Pages - usa o caminho completo
-                const baseUrl = window.location.origin + currentPath.replace(/\/$/, '');
+                const baseUrl = window.location.origin + currentPath.replace(/\/[^\/]*$/, '');
                 return `${baseUrl}/imagens/${imageName}`;
             } else {
                 // Para desenvolvimento local
                 return `./imagens/${imageName}`;
+            }
+        }
+
+        // Função para testar URLs de imagem
+        function testImageUrls() {
+            console.log('=== TESTE DE URLs ===');
+            console.log('Hostname:', window.location.hostname);
+            console.log('Pathname:', window.location.pathname);
+            console.log('Origin:', window.location.origin);
+            console.log('É GitHub Pages:', window.location.hostname.includes('github.io'));
+            
+            if (existingImages.length > 0) {
+                const testImage = existingImages[0];
+                const testUrl = getFullImageUrl(testImage);
+                console.log('URL de teste:', testUrl);
+                
+                // Testa se a URL responde
+                fetch(testUrl, { method: 'HEAD' })
+                    .then(response => {
+                        console.log('Status da imagem teste:', response.status);
+                        console.log('Imagem acessível:', response.ok);
+                    })
+                    .catch(error => {
+                        console.log('Erro ao acessar imagem teste:', error);
+                    });
             }
         }
 
@@ -674,21 +694,39 @@
         });
 
         // Carregar imagens existentes ao iniciar
-        document.addEventListener('DOMContentLoaded', loadExistingImages);
+        document.addEventListener('DOMContentLoaded', function() {
+            loadExistingImages();
+            testImageUrls();
+        });
 
-        // Debug info
-        console.log('Site URL:', window.location.href);
-        console.log('GitHub Pages:', window.location.hostname.includes('github.io'));
+        // Debug info detalhado
+        console.log('=== INFORMAÇÕES DO SITE ===');
+        console.log('URL completa:', window.location.href);
+        console.log('Hostname:', window.location.hostname);
+        console.log('Pathname:', window.location.pathname);
+        console.log('GitHub Pages?', window.location.hostname.includes('github.io'));
         console.log('Imagens configuradas:', existingImages);
+        console.log('Quantidade de imagens:', existingImages.length);
         
-        // Testa conectividade
-        fetch('./imagens/')
-            .then(response => {
-                console.log('Pasta imagens/ acessível:', response.ok);
-            })
-            .catch(error => {
-                console.log('Erro ao acessar pasta imagens/:', error);
-            });
+        // Testa acesso à pasta imagens
+        console.log('=== TESTE DE CONECTIVIDADE ===');
+        
+        // Tenta diferentes caminhos possíveis
+        const possiblePaths = [
+            './imagens/',
+            '/imagens/',
+            window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '') + '/imagens/'
+        ];
+        
+        possiblePaths.forEach((path, index) => {
+            fetch(path)
+                .then(response => {
+                    console.log(`Caminho ${index + 1} (${path}):`, response.status, response.ok ? '✅' : '❌');
+                })
+                .catch(error => {
+                    console.log(`Caminho ${index + 1} (${path}): ERRO -`, error.message);
+                });
+        });
     </script>
 </body>
 </html>
